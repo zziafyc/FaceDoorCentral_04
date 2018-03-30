@@ -186,6 +186,7 @@ public class RegisterActivity2 extends BaseAppCompatActivity implements OnClickL
                                 ToastShow.showTip(mToast, "工号长度超出限制！");
                                 return;
                             }
+                            mAuthId = userIdToAuthId(userID);
                             arg0.onNext(userID);
                         }
                     }).map(new Func1<Integer, String>() {
@@ -204,6 +205,17 @@ public class RegisterActivity2 extends BaseAppCompatActivity implements OnClickL
                                 public void call(String s) {
                                     ProgressShow.stop(mProDialog);
                                     ToastShow.showTip(RegisterActivity2.this, s);
+                                    SharedPreferences config = getSharedPreferences(MyApp.CONFIG, MODE_PRIVATE);
+                                    int faceOnly = config.getInt(MyApp.FACEONLY, 0);
+                                    Log.e("zziafyc", faceOnly + "");
+                                    if (faceOnly == 0) {
+                                        // 跳转到声纹识别界面
+                                        Intent intent = new Intent();
+                                        intent.putExtra("ID", mAuthId);
+                                        intent.setClass(RegisterActivity2.this, IsvDemo2.class);
+                                        startActivity(intent);
+                                    }
+                                    finish();
                                 }
                             });
                 } else if (msg.arg1 == MSG_EVENT_NO_FEATURE) {
@@ -726,13 +738,15 @@ public class RegisterActivity2 extends BaseAppCompatActivity implements OnClickL
                                         //然后退出组别表
                                         DBUtil dbUtil = new DBUtil(RegisterActivity2.this);
                                         dbUtil.deleteUserGroup(Integer.parseInt(userId));
+                                        //删除声纹信息
+                                        deleteHandler.sendEmptyMessage(DELETE);
                                     }
                                 })
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Action1<String>() {
                                     public void call(String groupID) {
                                         ProgressShow.stop(mProDialog);
-                                        ToastShow.showTip(RegisterActivity2.this, "已删除");
+                                        ToastShow.showTip(RegisterActivity2.this, "该用户信息已删除");
                                     }
                                 });
                     }

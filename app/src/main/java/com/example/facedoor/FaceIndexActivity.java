@@ -55,6 +55,10 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     ImageView moreImg;
     @Bind(R.id.wakeTv)
     TextView wakeTv;
+  /*  @Bind(R.id.videoView)
+    VideoView mVideoView;
+    @Bind(R.id.faceIv)
+    ImageView faceIv;*/
 
     MyReceiver receiver;
     private MyMessageObserver mMessageObserver;
@@ -66,6 +70,12 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     private Dialog dialog;
     private boolean isActivityShowing = false;
     private Handler mHandler = new Handler();
+   /* private Timer timer;
+    private TimerTask task;*/
+
+    public FaceIndexActivity() {
+        mHandler = new Handler();
+    }
 
     @Override
     protected int getContentViewLayoutID() {
@@ -146,6 +156,22 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     }
 
     private void initEvents() {
+      /*  mVideoView.setVisibility(View.GONE);
+        //主页动态视频
+        timer = new Timer();
+        task = new TimerTask() {
+            public void run() {
+                //每次需要执行的代码放到这里面
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String uri = "android.resource://" + getPackageName() + "/" + R.raw.index2;
+                        mVideoView.setVideoURI(Uri.parse(uri));
+                        mVideoView.start();
+                    }
+                });
+            }
+        };*/
         //广播
         IntentFilter filter = new IntentFilter();
         filter.addAction("ddsdemo.intent.action.init_complete");
@@ -193,7 +219,7 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
                     }
                     Log.e(TAG, "mInputText : " + text);
                     if (text.equals(wakeUpString)) {
-                        //启动动画
+                        //启动下面动画
                         startAnimator();
                         try {
                             Thread.sleep(2000);
@@ -263,7 +289,8 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
 
     public void enableWakeIfNecessary() {
         try {
-            DDS.getInstance().getAgent().enableWakeup();
+            DDS.getInstance().getAgent().getWakeupEngine().enableWakeup();
+            //DDS.getInstance().getAgent().enableWakeup();
         } catch (DDSNotInitCompleteException e) {
             e.printStackTrace();
         }
@@ -272,7 +299,8 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     public void disableWakeIfNecessary() {
         try {
             DDS.getInstance().getAgent().stopDialog();
-            DDS.getInstance().getAgent().disableWakeup();
+            DDS.getInstance().getAgent().getWakeupEngine().disableWakeup();
+            //DDS.getInstance().getAgent().disableWakeup();
         } catch (DDSNotInitCompleteException e) {
             e.printStackTrace();
         }
@@ -494,6 +522,9 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     @Override
     protected void onDestroy() {
         unregisterReceiver(receiver);
+      /*  if (timer != null) {
+            timer.cancel();
+        }*/
         super.onDestroy();
     }
 }

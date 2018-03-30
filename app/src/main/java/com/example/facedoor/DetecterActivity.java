@@ -13,11 +13,13 @@ import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.arcsoft.ageestimation.ASAE_FSDKAge;
@@ -41,16 +43,20 @@ import com.arcsoft.genderestimation.ASGE_FSDKGender;
 import com.arcsoft.genderestimation.ASGE_FSDKVersion;
 import com.example.aicsoft.FaceManagerUtils;
 import com.example.aicsoft.model.FaceRegist;
+import com.example.facedoor.model.User;
 import com.example.facedoor.util.StringUtils;
 import com.example.facedoor.util.ToastShow;
 import com.guo.android_extend.java.AbsLoop;
-import com.guo.android_extend.java.ExtByteArrayOutputStream;
 import com.guo.android_extend.tools.CameraHelper;
 import com.guo.android_extend.widget.CameraFrameData;
 import com.guo.android_extend.widget.CameraGLSurfaceView;
 import com.guo.android_extend.widget.CameraSurfaceView;
 import com.guo.android_extend.widget.CameraSurfaceView.OnCameraListener;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +67,8 @@ import java.util.List;
 
 public class DetecterActivity extends Activity implements OnCameraListener, View.OnTouchListener, Camera.AutoFocusCallback {
     private final String TAG = this.getClass().getSimpleName();
+    private final static int FACE_WIDTH = 320;
+    private final static int FACE_HEIGHT = 320;
     private String mGroupId;
     List<FaceRegist> mResgist = new ArrayList<>();
 
@@ -86,10 +94,19 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
     FRAbsLoop mFRAbsLoop = null;
     AFT_FSDKFace mAFT_FSDKFace = null;
     Handler mHandler;
+    private RelativeLayout backRv;
     private TextView mTextView;
     private TextView mTextView1;
     private ImageView mImageView;
     private long lastTime;  //这个时间标记是最后人脸检测的时间
+    private int detectTimes;//标记检测出多少次人脸   用来控制检测速度
+    private User mUser;  //标记已识别用户的用户号
+    // 预览帧数据存储数组和缓存数组
+    private byte[] mNV21;
+    private byte[] mBuffer;
+    // Camera nv21格式预览帧的尺寸，默认设置640*480
+    private int PREVIEW_WIDTH = 640;
+    private int PREVIEW_HEIGHT = 480;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,8 +115,8 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
         mCameraID = getIntent().getIntExtra("Camera", 0) == 0 ? Camera.CameraInfo.CAMERA_FACING_BACK : Camera.CameraInfo.CAMERA_FACING_FRONT;
         mCameraRotate = getIntent().getIntExtra("Camera", 0) == 0 ? 0 : 270;
         mCameraMirror = getIntent().getIntExtra("Camera", 0) == 0 ? false : true;
-        mWidth = 1280;
-        mHeight = 960;
+        mWidth = 640;
+        mHeight = 480;
         mFormat = ImageFormat.NV21;
         mHandler = new Handler();
 
@@ -112,6 +129,13 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
         mSurfaceView.debug_print_fps(true, false);
 
         //snap
+        backRv = (RelativeLayout) findViewById(R.id.actionbar_back);
+        backRv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         mTextView = (TextView) findViewById(R.id.textView);
         mTextView.setText("");
         mTextView1 = (TextView) findViewById(R.id.textView1);
@@ -134,6 +158,8 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
         error1 = mGenderEngine.ASGE_FSDK_GetVersion(mGenderVersion);
         Log.d(TAG, "ASGE_FSDK_GetVersion:" + mGenderVersion.toString() + "," + error1.getCode());
 
+        mNV21 = new byte[PREVIEW_WIDTH * PREVIEW_HEIGHT * 2];
+        mBuffer = new byte[PREVIEW_WIDTH * PREVIEW_HEIGHT * 2];
     }
 
     Runnable hide = new Runnable() {
@@ -226,6 +252,7 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
                             if (max < score.getScore()) {
                                 max = score.getScore();
                                 name = fr.getUser().getName();
+                                mUser = fr.getUser();
                             }
                         }
                     }
@@ -245,16 +272,23 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
 
                 //crop
                 if (mImageNV21 != null) {
-                    byte[] data = mImageNV21;
+                   /* byte[] data = mImageNV21;
                     YuvImage yuv = new YuvImage(data, ImageFormat.NV21, mWidth, mHeight, null);
                     ExtByteArrayOutputStream ops = new ExtByteArrayOutputStream();
-                    yuv.compressToJpeg(mAFT_FSDKFace.getRect(), 80, ops);
+                    yuv.compressToJpeg(mAFT_FSDKFace.getRect(), 100, ops);
                     final Bitmap bmp = BitmapFactory.decodeByteArray(ops.getByteArray(), 0, ops.getByteArray().length);
                     try {
                         ops.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+*/
+                    synchronized (mImageNV21) {
+                        System.arraycopy(mImageNV21, 0, mBuffer, 0, mImageNV21.length);
+                    }
+                    ByteArrayOutputStream jpeg = nv21ToJPEG(mBuffer, PREVIEW_WIDTH, PREVIEW_HEIGHT);
+                    byte[] rawJPEG = jpeg.toByteArray();
+                    final Bitmap bmp = BitmapFactory.decodeByteArray(rawJPEG, 0, rawJPEG.length);
 
                     if (max > 0.6f) {
                         //fr success.
@@ -265,30 +299,40 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                mTextView.setVisibility(View.VISIBLE);
+                                // mTextView.setVisibility(View.VISIBLE);
                                 mTextView.setAlpha(1.0f);
                                 mTextView.setText(mNameShow);
                                 mTextView.setTextColor(Color.RED);
-                                mTextView1.setVisibility(View.VISIBLE);
+                                //  mTextView1.setVisibility(View.VISIBLE);
                                 mTextView1.setText("置信度：" + (float) ((int) (max_score * 1000)) / 1000.0);
                                 mTextView1.setTextColor(Color.RED);
                                 mImageView.setRotation(mCameraRotate);
                                 if (mCameraMirror) {
                                     mImageView.setScaleY(-1);
                                 }
-                                mImageView.setVisibility(View.VISIBLE);
+                                //    mImageView.setVisibility(View.VISIBLE);
                                 mImageView.setImageAlpha(255);
                                 mImageView.setImageBitmap(bmp);
                             }
                         });
+                        detectTimes++;
+                        if (detectTimes == 4) {
+                            Bitmap cropBitmap = cropWithFace(bmp, mAFT_FSDKFace.getRect());
+                            saveBitmapToFile(cropBitmap, "crop.jpg");
+                            Intent intent = new Intent(DetecterActivity.this, IdentifyActivity2.class);
+                            intent.putExtra("score", (double) ((int) (max_score * 1000)) / 1000.0 * 100);
+                            intent.putExtra("user", mUser);
+                            startActivity(intent);
+                            finish();
+                        }
                     } else {
                         final String mNameShow = "未识别";
                         DetecterActivity.this.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mTextView.setVisibility(View.VISIBLE);
+                                //   mTextView.setVisibility(View.VISIBLE);
                                 mTextView.setAlpha(1.0f);
-                                mTextView1.setVisibility(View.VISIBLE);
+                                //   mTextView1.setVisibility(View.VISIBLE);
                                 mTextView1.setText(gender + "," + age);
                                 mTextView1.setTextColor(Color.RED);
                                 mTextView.setText(mNameShow);
@@ -298,7 +342,7 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
                                 if (mCameraMirror) {
                                     mImageView.setScaleY(-1);
                                 }
-                                mImageView.setVisibility(View.VISIBLE);
+                                //   mImageView.setVisibility(View.VISIBLE);
                                 mImageView.setImageBitmap(bmp);
                             }
                         });
@@ -464,4 +508,77 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
             Log.d(TAG, "Camera Focus SUCCESS!");
         }
     }
+
+    private void saveBitmapToFile(Bitmap bitmap, String fileName) {
+        String file_path = getImagePath(fileName);
+        File file = new File(file_path);
+        FileOutputStream fOut;
+        try {
+            fOut = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 85, fOut);
+            fOut.flush();
+            fOut.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * 设置保存图片路径
+     *
+     * @return
+     */
+    private String getImagePath(String fileName) {
+        String path;
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            return null;
+        }
+        path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FaceVocal/";
+        File folder = new File(path);
+        if (folder != null && !folder.exists()) {
+            folder.mkdirs();
+        }
+        path += fileName;
+        return path;
+    }
+
+    private Bitmap cropWithFace(Bitmap org, Rect face) {
+        int left = face.left;
+        int top = face.top;
+        int right = face.right;
+        int bottom = face.bottom;
+        int faceX = right - left;
+        int faceY = bottom - top;
+
+        if (faceX >= FACE_WIDTH || faceY >= FACE_HEIGHT) {
+            return org;
+        }
+
+        int paddingX = (FACE_WIDTH - faceX) / 2 + 1;
+        int paddingY = (FACE_HEIGHT - faceY) / 2 + 1;
+        left = left - paddingX;
+        top = top - paddingY;
+
+        left = left < 0 ? 0 : left;
+        top = top < 0 ? 0 : top;
+        int width = org.getWidth();
+        int height = org.getHeight();
+        int cropWidth = left + FACE_WIDTH > width ? width - left : FACE_WIDTH;
+        int cropHeight = top + FACE_HEIGHT > height ? height - top : FACE_HEIGHT;
+
+        return Bitmap.createBitmap(org, left, top, cropWidth, cropHeight);
+
+    }
+
+    private ByteArrayOutputStream nv21ToJPEG(byte[] nv21, int width, int height) {
+        YuvImage yuv = new YuvImage(nv21, ImageFormat.NV21, width, height, null);
+        ByteArrayOutputStream jpeg = new ByteArrayOutputStream();
+        Rect rect = new Rect(0, 0, yuv.getWidth(), yuv.getHeight());
+        yuv.compressToJpeg(rect, 100, jpeg);
+        return jpeg;
+    }
+
 }

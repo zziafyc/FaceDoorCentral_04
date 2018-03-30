@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.facedoor.db.DBUtil;
+import com.example.facedoor.model.User;
 import com.example.facedoor.util.ImageFile;
 import com.example.facedoor.util.ProgressShow;
 import com.example.facedoor.util.ToastShow;
@@ -121,6 +123,8 @@ public class IdentifyActivity2 extends Activity {
     private static InetAddress mAddress;
     private static String ip = "192.168.1.49";
     private static final int UDPPort = 5050;
+    private double score;
+    private User mUser;
 
     /**
      * 录音机监听器
@@ -270,8 +274,92 @@ public class IdentifyActivity2 extends Activity {
             ToastShow.showTip(mToast, "请先建立组");
             delayedFinish(3000);
         }
-        ProgressShow.show(mProDialog, "鉴别中。。。");
-        faceIdentity();
+        //  ProgressShow.show(mProDialog, "鉴别中。。。");
+        // faceIdentity();
+        faceIdentity2();
+    }
+
+    private void faceIdentity2() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            score = intent.getDoubleExtra("score", 0);
+            mUser = (User) intent.getSerializableExtra("user");
+        }
+        if (score < 60.0) {
+            mResultEditText.setText("对不起，请注册");
+            mSpeaker.startSpeaking("对不起，请注册", null);
+            new Thread() {
+                public void run() {
+                    identifyFailedUploadImages("B");
+                }
+            }.start();
+            delayedFinish(3000);
+        } else {
+            mScore.setText("" + score);
+            //开始进行声纹识别
+            authId = userIdToAuthId(Integer.parseInt(mUser.getUserID()));
+            Observable.create(new OnSubscribe<Integer>() {
+                @Override
+                public void call(Subscriber<? super Integer> arg0) {
+                    SharedPreferences config = getSharedPreferences(MyApp.CONFIG, MODE_PRIVATE);
+                    int faceVocal = config.getInt(MyApp.FACEONLY, 0);
+                    arg0.onNext(faceVocal);
+                }
+            }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Action1<Integer>() {
+                        @Override
+                        public void call(Integer faceVocal) {
+                            if (faceVocal == 1) {
+                                faceOnlySuceess();
+                            } else {
+                                mSST = SST_VERIFY;
+                                mVerifyNumPwd = VerifierUtil.generateNumberPassword(8);
+                                StringBuffer strBuffer = new StringBuffer();
+                                strBuffer.append("您的验证码：" + mVerifyNumPwd + "\n");
+                                mResultEditText.setText(strBuffer.toString());
+                                if (mSpeaker != null) {
+                                    mSpeaker.startSpeaking("请读出验证码", new SynthesizerListener() {
+                                        @Override
+                                        public void onSpeakBegin() {
+
+                                        }
+
+                                        @Override
+                                        public void onBufferProgress(int i, int i1, int i2, String s) {
+
+                                        }
+
+                                        @Override
+                                        public void onSpeakPaused() {
+
+                                        }
+
+                                        @Override
+                                        public void onSpeakResumed() {
+
+                                        }
+
+                                        @Override
+                                        public void onSpeakProgress(int i, int i1, int i2) {
+
+                                        }
+
+                                        @Override
+                                        public void onCompleted(SpeechError speechError) {
+                                            //机器说玩之后再进行声音的识别
+                                            faceVocalSuceess();
+                                        }
+
+                                        @Override
+                                        public void onEvent(int i, int i1, int i2, Bundle bundle) {
+
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    });
+        }
     }
 
     private void faceIdentity() {
@@ -620,7 +708,7 @@ public class IdentifyActivity2 extends Activity {
                                         //door.open();
                                         num.setText(num1);
                                         name.setText(name1);
-                                        mSpeaker.startSpeaking(name1 + "允许进入", new SynthesizerListener() {
+                                        mSpeaker.startSpeaking(name1 + "请进入", new SynthesizerListener() {
                                             @Override
                                             public void onSpeakBegin() {
 
@@ -737,6 +825,10 @@ public class IdentifyActivity2 extends Activity {
             showTip("开始说话");
         }
     };
+
+    private String userIdToAuthId(int userId) {
+        return "a" + userId;
+    }
 
     private void identifyFailedUploadImages(String type) {
       /*  PlatformComm platformComm = new PlatformComm(IdentifyActivity.this);

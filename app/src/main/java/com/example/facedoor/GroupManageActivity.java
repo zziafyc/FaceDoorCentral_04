@@ -424,7 +424,7 @@ public class GroupManageActivity extends BaseAppCompatActivity implements OnClic
         }
 
         startProgress("正在创建组...");
-        // sst=add，scope=group，group_name=famil;
+       /* // sst=add，scope=group，group_name=famil;
         // 设置人脸模型操作参数
         // 清空参数
         mIdVerifier.setParameter(SpeechConstant.PARAMS, null);
@@ -439,7 +439,37 @@ public class GroupManageActivity extends BaseAppCompatActivity implements OnClic
         params.append("scope=group");
         params.append(",group_name=" + groupName);
         // 执行模型操作
-        mIdVerifier.execute("ipt", "add", params.toString(), mCreateListener);
+        mIdVerifier.execute("ipt", "add", params.toString(), mCreateListener);*/
+        //生成十位随机组号(int)
+        final String groupId2 = String.valueOf((int) ((Math.random() * 9 + 1) * 1000000000));
+        final String groupName2 = mGroupDrop.getText();
+        mGroupDrop.getEditText().setText(groupId2);
+        //设置光标始终靠右
+        if (!StringUtils.isEmpty(mGroupDrop.getEditText().getText().toString())) {
+            CharSequence text = mGroupDrop.getEditText().getText();
+            if (text instanceof Spannable) {
+                Spannable spanText = (Spannable) text;
+                Selection.setSelection(spanText, text.length());
+            }
+        }
+        ToastShow.showTip(mToast, "组创建成功");
+        //插入到数据库中
+        MyApp.getDBManage(GroupManageActivity.this).insertGroup(groupName, groupId2);
+        //刷新列表适配器
+        ArrayList<Group> groups = MyApp.getDBManage(GroupManageActivity.this).getGroups();
+        BaseAdapter adp = mGroupDrop.getAdapter();
+        mGroupDrop.setList(GroupManageActivity.this, groups);
+        if (adp != null) {
+            adp.notifyDataSetChanged();
+        }
+        new Thread() {
+            public void run() {
+                DBUtil dbUtil = new DBUtil(GroupManageActivity.this);
+                dbUtil.insertGroup(groupId2, groupName2);
+            }
+        }.start();
+        stopProgress();
+
     }
 
     private void addGroup() {

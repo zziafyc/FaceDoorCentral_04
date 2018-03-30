@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/black"
+              android:orientation="vertical">
+
+    <include layout="@layout/common_app_bar"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/faceIv"
+            android:layout_width="match_parent"
+            android:layout_height="440dp"
+            android:background="@mipmap/face8"
+            android:visibility="visible"/>
+
+        <VideoView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
+            android:layout_height="450dp"
+            android:visibility="visible"/>
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/afi_click_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp">
+
+        <ImageView
+
+            android:id="@+id/afi_click_img"
+            android:layout_width="380dp"
+            android:layout_height="380dp"
+            android:layout_centerInParent="true"
+            android:background="@drawable/face_1"/>
+
+        <TextView
+            android:id="@+id/wakeTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="点击或者读出“你好小用”"
+            android:textColor="@color/white"
+            android:textSize="24sp"/>
+    </RelativeLayout>
+
+</LinearLayout>

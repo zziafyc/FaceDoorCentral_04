@@ -1,6 +1,8 @@
 package com.example.facedoor.model;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
     public String userID;
     public String name;
     public String staffId;

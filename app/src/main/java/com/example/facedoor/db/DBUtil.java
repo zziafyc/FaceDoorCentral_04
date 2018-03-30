@@ -437,7 +437,7 @@ public class DBUtil {
             return null;
         }
         Statement query = null;
-        String queryStr = "SELECT * FROM users as u join user_group as ug on u.id = ug.id and ug.group_id = " + groupId;
+        String queryStr = "SELECT * FROM users as u join user_group as ug on u.id = ug.id and ug.group_id = '" + groupId + "'";
         try {
             query = con.createStatement();
             ResultSet rs = query.executeQuery(queryStr);

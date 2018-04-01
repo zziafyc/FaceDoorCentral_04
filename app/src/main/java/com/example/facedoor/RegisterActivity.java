@@ -135,7 +135,7 @@ public class RegisterActivity extends BaseAppCompatActivity implements OnClickLi
     private String staffID;
     private String staffName;
     private Handler deleteHandler = new Handler() {
-        public void handleMessage(android.os.Message msg) {
+        public void handleMessage(Message msg) {
             switch (msg.what) {
                 case DELETE:
                     //执行声纹删除模型

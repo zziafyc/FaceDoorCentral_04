@@ -32,7 +32,7 @@ import java.util.TimerTask;
 
 import butterknife.Bind;
 
-public class IndexActivity extends BaseAppCompatActivity implements android.content.DialogInterface.OnClickListener {
+public class IndexActivity extends BaseAppCompatActivity implements DialogInterface.OnClickListener {
     @Bind(R.id.backIv)
     ImageView backIv;
     private static final String TAG = "fyc";

@@ -138,7 +138,7 @@ public class RegisterActivity2 extends BaseAppCompatActivity implements OnClickL
     private String staffName;
     private AFR_FSDKFace mAFR_FSDKFace;
     private Handler groupHandler = new Handler() {
-        public void handleMessage(android.os.Message msg) {
+        public void handleMessage(Message msg) {
             switch (msg.what) {
                 case JOIN_GROUP:
                     joinGroup(mAuthId, mGroupJoin.peek());
@@ -153,7 +153,7 @@ public class RegisterActivity2 extends BaseAppCompatActivity implements OnClickL
     //执行声纹识别的模型删除
     private final static int DELETE = 1000;
     private Handler deleteHandler = new Handler() {
-        public void handleMessage(android.os.Message msg) {
+        public void handleMessage(Message msg) {
             switch (msg.what) {
                 case DELETE:
                     //执行声纹删除模型

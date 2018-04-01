@@ -311,12 +311,12 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
                                     mImageView.setScaleY(-1);
                                 }
                                 //    mImageView.setVisibility(View.VISIBLE);
-                                mImageView.setImageAlpha(255);
+                              //  mImageView.setImageAlpha(255);
                                 mImageView.setImageBitmap(bmp);
                             }
                         });
                         detectTimes++;
-                        if (detectTimes == 4) {
+                        if (detectTimes == 2) {
                             Bitmap cropBitmap = cropWithFace(bmp, mAFT_FSDKFace.getRect());
                             saveBitmapToFile(cropBitmap, "crop.jpg");
                             Intent intent = new Intent(DetecterActivity.this, IdentifyActivity2.class);
@@ -337,7 +337,7 @@ public class DetecterActivity extends Activity implements OnCameraListener, View
                                 mTextView1.setTextColor(Color.RED);
                                 mTextView.setText(mNameShow);
                                 mTextView.setTextColor(Color.RED);
-                                mImageView.setImageAlpha(255);
+                                //mImageView.setImageAlpha(255);
                                 mImageView.setRotation(mCameraRotate);
                                 if (mCameraMirror) {
                                     mImageView.setScaleY(-1);

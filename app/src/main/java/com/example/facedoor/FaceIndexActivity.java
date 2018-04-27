@@ -267,7 +267,7 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     public void sendHiMessage() {
         String[] wakeupWords = new String[0];
         try {
-            wakeupWords = DDS.getInstance().getAgent().getWakeupWords();
+            wakeupWords = DDS.getInstance().getAgent().getWakeupEngine().getWakeupWords();
         } catch (DDSNotInitCompleteException e) {
             e.printStackTrace();
         }

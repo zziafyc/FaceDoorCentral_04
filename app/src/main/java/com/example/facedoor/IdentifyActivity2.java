@@ -318,43 +318,48 @@ public class IdentifyActivity2 extends Activity {
                                 strBuffer.append("您的验证码：" + mVerifyNumPwd + "\n");
                                 mResultEditText.setText(strBuffer.toString());
                                 if (mSpeaker != null) {
-                                    mSpeaker.startSpeaking("请读出验证码", new SynthesizerListener() {
+                                    new Thread(new Runnable() {
                                         @Override
-                                        public void onSpeakBegin() {
+                                        public void run() {
+                                            mSpeaker.startSpeaking("请读出验证码", new SynthesizerListener() {
+                                                @Override
+                                                public void onSpeakBegin() {
 
+                                                }
+
+                                                @Override
+                                                public void onBufferProgress(int i, int i1, int i2, String s) {
+
+                                                }
+
+                                                @Override
+                                                public void onSpeakPaused() {
+
+                                                }
+
+                                                @Override
+                                                public void onSpeakResumed() {
+
+                                                }
+
+                                                @Override
+                                                public void onSpeakProgress(int i, int i1, int i2) {
+
+                                                }
+
+                                                @Override
+                                                public void onCompleted(SpeechError speechError) {
+                                                    //机器说玩之后再进行声音的识别
+                                                    faceVocalSuceess();
+                                                }
+
+                                                @Override
+                                                public void onEvent(int i, int i1, int i2, Bundle bundle) {
+
+                                                }
+                                            });
                                         }
-
-                                        @Override
-                                        public void onBufferProgress(int i, int i1, int i2, String s) {
-
-                                        }
-
-                                        @Override
-                                        public void onSpeakPaused() {
-
-                                        }
-
-                                        @Override
-                                        public void onSpeakResumed() {
-
-                                        }
-
-                                        @Override
-                                        public void onSpeakProgress(int i, int i1, int i2) {
-
-                                        }
-
-                                        @Override
-                                        public void onCompleted(SpeechError speechError) {
-                                            //机器说玩之后再进行声音的识别
-                                            faceVocalSuceess();
-                                        }
-
-                                        @Override
-                                        public void onEvent(int i, int i1, int i2, Bundle bundle) {
-
-                                        }
-                                    });
+                                    }).start();
                                 }
                             }
                         }

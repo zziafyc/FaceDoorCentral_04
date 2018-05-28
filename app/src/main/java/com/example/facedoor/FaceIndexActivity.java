@@ -156,22 +156,6 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
     }
 
     private void initEvents() {
-      /*  mVideoView.setVisibility(View.GONE);
-        //主页动态视频
-        timer = new Timer();
-        task = new TimerTask() {
-            public void run() {
-                //每次需要执行的代码放到这里面
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String uri = "android.resource://" + getPackageName() + "/" + R.raw.index2;
-                        mVideoView.setVideoURI(Uri.parse(uri));
-                        mVideoView.start();
-                    }
-                });
-            }
-        };*/
         //广播
         IntentFilter filter = new IntentFilter();
         filter.addAction("ddsdemo.intent.action.init_complete");
@@ -222,7 +206,7 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
                         //启动下面动画
                         startAnimator();
                         try {
-                            Thread.sleep(2000);
+                            Thread.sleep(500);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -279,7 +263,7 @@ public class FaceIndexActivity extends BaseAppCompatActivity implements DialogIn
             hiStr = getString(R.string.hi_str, wakeupWords[0]);
             wakeUpString = wakeupWords[0];
         } else {
-            wakeUpString = "你好小驰";
+            wakeUpString = "你好小用";
         }
         if (!StringUtils.isEmpty(wakeUpString)) {
             wakeTv.setText("点击或者读出“" + wakeUpString + "“");

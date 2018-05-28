@@ -140,10 +140,11 @@ public class GroupManageActivity extends BaseAppCompatActivity implements OnClic
         String platformip = config.getString(MyApp.PLATFORM_IP, "");
         String doornum = config.getString(MyApp.DOOR_NUM, "");
         String dbagent = config.getString(MyApp.DB_AGENT, "");
-        String voiceValue = config.getString(MyApp.VOICE_VALUE, "60");
+        String voiceValue = config.getString(MyApp.VOICE_VALUE, "85");
         String detectTimeValue = config.getString(MyApp.DETECT_TIME_VALUE, "60");
         int faceVocal = config.getInt(MyApp.FACEONLY, 0);
         int faceDetect = config.getInt(MyApp.FACEDETECT, 0);
+
 
         mGroupDrop = (DropEditText) findViewById(R.id.drop_edit);
         mDBIP = (EditText) findViewById(R.id.et_dbip);

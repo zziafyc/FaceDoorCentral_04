@@ -1,12 +1,10 @@
 package com.example.facedoor;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -160,40 +158,15 @@ public class DDSService extends Service {
         System.exit(0);
     }
 
-    private String getImei(Context context) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(TELEPHONY_SERVICE);
-        String imei = null;
-        if (tm != null) {
-            imei = tm.getDeviceId();
-        }
-
-        return imei != null ? imei.trim() : "";
-    }
-
     private DDSConfig createConfig() {
 
-        /*DDSConfig config = new DDSConfig();
-        String imei = getImei(DDSService.this);
-        String deviceId = "".equals(imei) ? Build.SERIAL : imei;
-        String productId = "100001991"; //TODO填写自己的产品id
-        String userId = "user@group";
-        String aliasKey = "prod";
-
-        config.addConfig(DDSConfig.K_DEVICE_ID, deviceId);
-        config.addConfig(DDSConfig.K_PRODUCT_ID, productId);
-        config.addConfig(DDSConfig.K_USER_ID, userId);
-        config.addConfig(DDSConfig.K_ALIAS_KEY, aliasKey);
-
-        config.addConfig(DDSConfig.K_USE_UPDATE_NOTIFICATION, "true");
-
-        Log.i(TAG, "config->" + config.toString());*/
         DDSConfig config = new DDSConfig();
 
         config.addConfig(DDSConfig.K_PRODUCT_ID, "100001991");  // TODO 填写自己的产品ID
         config.addConfig(DDSConfig.K_USER_ID, "user@group");  // TODO 填写真是的用户ID
         config.addConfig(DDSConfig.K_ALIAS_KEY, "prod");   // TODO 填写产品的发布分支
         config.addConfig(DDSConfig.K_AUTH_TYPE, AuthType.PROFILE);
-        config.addConfig(DDSConfig.K_API_KEY, "a9dd69d8261da9dd69d8261d5a976840");  // TODO 填写API KEY
+        config.addConfig(DDSConfig.K_API_KEY, "07d69f18804415b4069100b05b0612b0");  // TODO 填写API KEY
         config.addConfig(DDSConfig.K_USE_UPDATE_NOTIFICATION, "true");
         Log.i(TAG, "config->" + config.toString());
         return config;

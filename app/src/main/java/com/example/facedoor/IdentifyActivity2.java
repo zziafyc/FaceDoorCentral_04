@@ -667,7 +667,7 @@ public class IdentifyActivity2 extends Activity {
             Log.e(TAG, "onResult: " + result.ret + "");
             if (result.ret == 0 && !flag) {
                 SharedPreferences config = getSharedPreferences(MyApp.CONFIG, MODE_PRIVATE);
-                String voiceValue = config.getString(MyApp.VOICE_VALUE, "60");
+                String voiceValue = config.getString(MyApp.VOICE_VALUE, "85");
                 if (result.score < Double.parseDouble(voiceValue)) {
                     Log.e(TAG, "scroe: " + result.score + "");
                     mResultEditText.setText("分数太低，验证不通过");
